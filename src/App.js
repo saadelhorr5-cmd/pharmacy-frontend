@@ -1,207 +1,175 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { BrowserRouter as Router, Routes, Route, NavLink, Navigate } from "react-router-dom";
+import { useState } from "react";
+import Dashboard from "./pages/Dashboard";
+import Medicaments from "./pages/Medicaments";
+import Ventes from "./pages/Ventes";
+import Login from "./pages/Login";
+import Users from "./pages/Users";
+
 
 function App() {
-  const [medicaments, setMedicaments] = useState([]);
 
-  const [editId, setEditId] = useState(null);
+  const user = JSON.parse(localStorage.getItem("user"));
+  const [open, setOpen] = useState(true);
 
-  const editMedicament = (med) => {
-    setForm({
-      nom: med.nom,
-      prix: med.prix,
-      quantite: med.quantite,
-      date_expiration: med.date_expiration
-    });
-
-    setEditId(med.id);
+  const handleLogout = () => {
+    localStorage.clear();
+    window.location.href = "/login";
   };
 
-  const [cart, setCart] = useState([]);
-
-  const [form, setForm] = useState({
-    nom: "",
-    prix: "",
-    quantite: "",
-    date_expiration: ""
-  });
-
-  const deleteMedicament = (id) => {
-  axios.delete(`http://localhost:8000/api/medicaments/${id}`)
-    .then(() => {
-      fetchMedicaments();
-    });
-  };
-
-  // Fetch data
-  useEffect(() => {
-    fetchMedicaments();
-  }, []);
-  
-
-
-  const fetchMedicaments = () => {
-    axios.get("http://localhost:8000/api/medicaments")
-      .then(res => setMedicaments(res.data));
-  };
-
-  // Handle input
-  const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  // Submit form
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    if (editId) {
-      axios.put(`http://localhost:8000/api/medicaments/${editId}`, form)
-        .then(() => {
-          setEditId(null);
-          fetchMedicaments();
-        });
-    } else {
-      axios.post("http://localhost:8000/api/medicaments", form)
-        .then(() => {
-          fetchMedicaments();
-        });
-    }
-  };
-
-  // addToCart 
-  const addToCart = (med) => {
-    const exist = cart.find(item => item.id === med.id);
-
-    if (exist) {
-      setCart(cart.map(item =>
-        item.id === med.id
-          ? { ...item, quantite: item.quantite + 1 }
-          : item
-      ));
-    } else {
-      setCart([...cart, { ...med, quantite: 1 }]);
-    }
-  };
-  // removeFromCart 
-  const removeFromCart = (id) => {
-  setCart(cart.filter(item => item.id !== id));
-  };
-
-  const updateQuantite = (id, value) => {
-    setCart(cart.map(item =>
-      item.id === id ? { ...item, quantite: value } : item
-    ));
-  };
-
-  const total = cart.reduce((sum, item) => {
-    return sum + item.prix * item.quantite;
-  }, 0);
-  
-   // validerVente
-  const validerVente = () => {
-  if (cart.length === 0) {
-    alert("Panier vide !");
-    return;
-  }
-
-  axios.post("http://localhost:8000/api/ventes", { cart })
-    .then(() => {
-      alert("Vente réussie !");
-      setCart([]);
-      fetchMedicaments();
-    })
-    .catch(err => {
-      alert(err.response.data.error);
-    });
-  };
+  // return (
+  // <div className="bg-red-500 text-white p-10">
+  //   TEST LOGIN
+  // </div>
+  // );
 
   return (
-    <div>
-      <h1>Liste des Medicaments</h1>
+    <Router>
 
-      {/* FORM */}
-  <form onSubmit={handleSubmit}>
-  <input
-    name="nom"
-    placeholder="Nom du médicament"
-    value={form.nom}
-    onChange={handleChange}
-  />
+      <Routes>
 
-  <input
-    name="prix"
-    placeholder="Prix (DH)"
-    value={form.prix}
-    onChange={handleChange}
-  />
+        {/* LOGIN */}
+        <Route path="/login" element={<Login />} />
 
-  <input
-    name="quantite"
-    placeholder="Quantité"
-    value={form.quantite}
-    onChange={handleChange}
-  />
+        {/* NOT LOGGED */}
+        {!user && (
+          <Route path="*" element={<Navigate to="/login" />} />
+        )}
+        
 
-  <input
-    type="date"
-    name="date_expiration"
-    value={form.date_expiration}
-    onChange={handleChange}
-  />
+        {/* LOGGED */}
+        {user && (
+          <Route
+            path="*"
+            element={
+              <div className="min-h-screen flex">
 
-  <button type="submit">
-    {editId ? "Update" : "Ajouter"}
-  </button>
-  </form>
+                {/* SIDEBAR */}
+                <div className={`relative bg-[#0f172a] text-white min-h-screen transition-all duration-300 ${open ? "w-64" : "w-20"} flex flex-col`}>
 
-      <hr />
+                {/* LOGO */}
+                <div className="flex items-center gap-3 p-4">
+                  <div className="bg-green-500 w-10 h-10 rounded-lg flex items-center justify-center font-bold">
+                    P
+                  </div>
+                  {open && <span className="text-lg font-semibold">PharmaSystem</span>}
+                </div>
+                
 
-      {/* LIST */}
-      <ul>
-        {medicaments
-          .filter(m => m.quantite > 0)
-          .map(m => (
-            <li key={m.id}>
-              {m.nom} - {m.prix} DH - Stock: {m.quantite}
-              {m.quantite <= 5 && <span style={{color: "red"}}> ⚠️ Low Stock</span>}
-              <button onClick={() => addToCart(m)}>Ajouter Panier</button>
-              <button onClick={() => deleteMedicament(m.id)}>Delete</button>
-              <button onClick={() => editMedicament(m)}>Edit</button>
-            </li>
-        ))}
-      </ul>
-       {/* PANIER  */}
-      <h2>Panier</h2>
-      <ul>
-        {cart.map(item => (
-          <li key={item.id}>
-            {item.nom} - {item.prix} DH
+                {/* TOGGLE BUTTON (جنب) */}
+                <button
+                  onClick={() => setOpen(!open)}
+                  className="absolute -right-3 top-24 bg-white text-black w-7 h-7 rounded-full shadow flex items-center justify-center hover:bg-gray-200"
+                >
+                  {open ? "☰" : "☰"}
+                </button>
 
-            <input
-              type="number"
-              value={item.quantite}
-              onChange={(e) => updateQuantite(item.id, e.target.value)}
-              style={{ width: "50px", marginLeft: "10px" }}
-            />
-            <button onClick={() => removeFromCart(item.id)}>Supprimer</button> 
-            
-          </li>
-        ))}
-      </ul>
-      <h3>Total: {total} DH</h3>
-      <button onClick={validerVente}>
-        Valider Vente
-      </button>
+                {/* MENU */}
+                
+                <div className="flex flex-col gap-2 mt-6 px-3">
+                   <div className="mt-auto p-4">
+                      <button
+                        onClick={handleLogout}
+                        className="bg-red-500 w-full py-2 rounded-lg hover:bg-red-600 transition"
+                      >
+                        🔓 {open && "Logout"}
+                      </button>
+                    </div>
 
-  
+                  {user?.role === "admin" && (
+                    <>
+                      <NavLink
+                        to="/dashboard"
+                        className={({ isActive }) =>
+                          `flex items-center gap-3 p-3 rounded-lg transition ${
+                            isActive ? "bg-slate-700" : "hover:bg-slate-700"
+                          }`
+                        }
+                      >
+                        📊
+                        {open && "Dashboard"}
+                      </NavLink>
 
-    </div>
+                      <NavLink
+                        to="/medicaments"
+                        className={({ isActive }) =>
+                          `flex items-center gap-3 p-3 rounded-lg transition ${
+                            isActive ? "bg-slate-700" : "hover:bg-slate-700"
+                          }`
+                        }
+                      >
+                        💊
+                        {open && "Medicaments"}
+                      </NavLink>
+                      
+                    </>
+                  )}
+
+                  <NavLink
+                    to="/ventes"
+                    className={({ isActive }) =>
+                      `flex items-center gap-3 p-3 rounded-lg transition ${
+                        isActive ? "bg-slate-700" : "hover:bg-slate-700"
+                      }`
+                    }
+                  >
+                    🛒
+                    {open && "Ventes"}
+
+                    
+                  </NavLink>
+                  {user.role === "admin" && (
+                    <NavLink to="/users" className="block p-2 hover:bg-slate-700 rounded">
+                      👥 Users
+                    </NavLink>
+                  )}
+                  
+
+                </div>
+
+                {/* LOGOUT */}
+               
+
+              </div>
+
+                {/* MAIN */}
+                <div className="flex-1 p-6 bg-gray-100 min-h-screen">
+
+                  <Routes>
+
+                    {/* ADMIN */}
+                    {user?.role === "admin" && (
+                      <>
+                        <Route path="/dashboard" element={<Dashboard />} />
+                        <Route path="/medicaments" element={<Medicaments />} />
+                        <Route path="/ventes" element={<Ventes />} />
+                        <Route path="/users" element={<Users />} />
+                        <Route path="*" element={<Navigate to="/dashboard" />} />
+                        
+                      </>
+                    )}
+
+                    {/* PHARMACIEN */}
+                    {user?.role === "pharmacien" && (
+                      <>
+                        <Route path="/ventes" element={<Ventes />} />
+                        <Route path="*" element={<Navigate to="/ventes" />} />
+                      </>
+                    )}
+
+                  </Routes>
+
+                </div>
+
+              </div>
+            }
+          />
+        )}
+
+      </Routes>
+
+    </Router>
   );
-
-  
 }
 
 export default App;
