@@ -63,6 +63,30 @@ function Dashboard() {
         }]
     };
 
+
+    const downloadPDF = async () => {
+      const token = localStorage.getItem("token");
+
+      const res = await axios.get(
+        "http://localhost:8000/api/report/pdf",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          },
+          responseType: "blob"
+        }
+      );
+
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "report.pdf");
+      document.body.appendChild(link);
+      link.click();
+    };
+
+
+
   if (!dashboard) return <p>Loading...</p>;
   if (!stats) return <p>Loading charts...</p>;
 
@@ -99,6 +123,7 @@ function Dashboard() {
           {dashboard.lowStock.length}
         </h2>
 
+
         {/* LIST */}
         <div className="mt-4 space-y-2">
 
@@ -123,8 +148,13 @@ function Dashboard() {
           )}
 
         </div>
+        
 
       </div>
+          <button className="bg-green-500 text-white px-4 py-2 rounded" onClick={downloadPDF}>
+            📄 Télécharger PDF
+          </button>
+       
 
     </div>
 
