@@ -5,6 +5,7 @@ import Medicaments from "./pages/Medicaments";
 import Ventes from "./pages/Ventes";
 import Login from "./pages/Login";
 import Users from "./pages/Users";
+import logo from "./logo.png";
 
 
 function App() {
@@ -49,9 +50,11 @@ function App() {
 
                 {/* LOGO */}
                 <div className="flex items-center gap-3 p-4">
-                  <div className="bg-green-500 w-10 h-10 rounded-lg flex items-center justify-center font-bold">
-                    P
-                  </div>
+                  <img
+                    src={logo}
+                    alt="logo"
+                    className="w-12 h-12 rounded-xl shadow-md border border-gray-300"
+                  />
                   {open && <span className="text-lg font-semibold">PharmaSystem</span>}
                 </div>
                 
