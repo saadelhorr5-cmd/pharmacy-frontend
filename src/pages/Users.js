@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 
+
 function Users() {
 
   const [users, setUsers] = useState([]);
@@ -30,20 +31,56 @@ function Users() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const addUser = (e) => {
-    e.preventDefault();
-
-    axios.post("http://localhost:8000/api/users", form, getAuthHeaders())
-      .then(() => {
-        fetchUsers();
-        setForm({ name: "", email: "", password: "", role: "pharmacien" });
-      });
-  };
 
   const deleteUser = (id) => {
     axios.delete(`http://localhost:8000/api/users/${id}`, getAuthHeaders())
       .then(() => fetchUsers());
   };
+  
+  const [editingUserId, setEditingUserId] = useState(null);
+  
+  const editUser = (user) => {
+    setForm({
+      name: user.name,
+      email: user.email,
+      password: "", // خليه خاوي
+      role: user.role
+    });
+    setEditingUserId(user.id);
+  };
+
+  const addUser = (e) => {
+    e.preventDefault();
+
+    if (editingUserId) {
+      // UPDATE
+      axios.put(
+        `http://localhost:8000/api/users/${editingUserId}`,
+        form,
+        getAuthHeaders()
+      )
+      .then(() => {
+        alert("User modifié ✅");
+        fetchUsers();
+        setForm({ name: "", email: "", password: "", role: "pharmacien" });
+        setEditingUserId(null);
+      });
+
+    } else {
+      // ADD
+      axios.post(
+        "http://localhost:8000/api/users",
+        form,
+        getAuthHeaders()
+      )
+      .then(() => {
+        alert("User ajouté ✅");
+        fetchUsers();
+        setForm({ name: "", email: "", password: "", role: "pharmacien" });
+      });
+    }
+  };
+  
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
@@ -63,7 +100,7 @@ function Users() {
         </select>
 
         <button className="bg-indigo-500 text-white px-4 py-2 rounded">
-          Ajouter
+          {editingUserId ? "Modifier" : "Ajouter"}
         </button>
 
       </form>
@@ -79,17 +116,27 @@ function Users() {
               <p className="text-sm text-gray-500">{u.email} - {u.role}</p>
             </div>
 
-            <button
-              onClick={() => deleteUser(u.id)}
-              className="text-red-500"
-            >
-              Delete
-            </button>
+            <div className="flex gap-3">
+              <button
+                onClick={() => editUser(u)}
+                className="text-blue-500"
+              >
+                Modifier
+              </button>
+
+              <button
+                onClick={() => deleteUser(u.id)}
+                className="text-red-500"
+              >
+                Delete
+              </button>
+            </div>
 
           </div>
         ))}
 
       </div>
+      
 
     </div>
   );

@@ -25,6 +25,7 @@ function Dashboard() {
 
   const [dashboard, setDashboard] = useState(null);
   const [stats, setStats] = useState(null);
+  const [days, setDays] = useState(30);
 
   const getAuthHeaders = () => ({
     headers: {
@@ -33,19 +34,19 @@ function Dashboard() {
   });
 
     useEffect(() => {
-        axios.get("http://localhost:8000/api/dashboard", getAuthHeaders())
+      axios.get(`http://localhost:8000/api/dashboard?days=${days}`, getAuthHeaders())
         .then(res => setDashboard(res.data));
-    }, []);
+    }, [days]);
 
 
     useEffect(() => {
-        axios.get("http://localhost:8000/api/stats", {
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`
-                }
-            })
-        .then(res => setStats(res.data));
-    }, []);
+      axios.get(`http://localhost:8000/api/stats?days=${days}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`
+        }
+      })
+      .then(res => setStats(res.data));
+    }, [days]);
 
     const ventesChart = stats && {
         labels: stats.ventes.map(v => v.date),
@@ -94,6 +95,35 @@ function Dashboard() {
   <div className="p-6">
 
     <h1 className="text-2xl font-bold mb-6">📊 Dashboard</h1>
+
+      <div className="mb-4 flex gap-3">
+
+        <div className="mb-4 flex gap-3">
+
+        <button
+          onClick={() => setDays(7)}
+          className={days === 7 ? "bg-indigo-500 text-white px-3 py-1 rounded" : "bg-gray-200 px-3 py-1 rounded"}
+        >
+          7j
+        </button>
+
+        <button
+          onClick={() => setDays(14)}
+          className={days === 14 ? "bg-indigo-500 text-white px-3 py-1 rounded" : "bg-gray-200 px-3 py-1 rounded"}
+        >
+          14j
+        </button>
+
+        <button
+          onClick={() => setDays(30)}
+          className={days === 30 ? "bg-indigo-500 text-white px-3 py-1 rounded" : "bg-gray-200 px-3 py-1 rounded"}
+        >
+          30j
+        </button>
+
+      </div>
+
+    </div>
 
     {/* CARDS */}
     <div className="grid grid-cols-3 gap-6">
