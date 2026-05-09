@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { Bar } from "react-chartjs-2";
 
+
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -22,6 +23,8 @@ ChartJS.register(
 );
 
 function Dashboard() {
+  
+  
 
   const [dashboard, setDashboard] = useState(null);
   const [stats, setStats] = useState(null);
