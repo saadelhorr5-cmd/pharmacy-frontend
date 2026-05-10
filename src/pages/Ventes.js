@@ -162,6 +162,7 @@ function Ventes() {
 
           <h2 className="text-lg font-semibold mb-4">📦 Médicaments</h2>
 
+          <div className="max-h-[32rem] overflow-y-auto pr-2">
           <div className="grid grid-cols-2 gap-4">
 
             {medicaments
@@ -196,6 +197,8 @@ function Ventes() {
             ))}
 
           </div>
+
+        </div>
 
         </div>
 
@@ -279,6 +282,7 @@ function Ventes() {
 
           <h2 className="text-lg font-semibold mb-4">📊 Historique des ventes</h2>
 
+          <div className="max-h-[32rem] overflow-y-auto pr-2">
           <table className="w-full text-left">
 
             <thead>
@@ -298,6 +302,7 @@ function Ventes() {
             </tbody>
 
           </table>
+          </div>
 
         </div>
       )}

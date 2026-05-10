@@ -23,12 +23,11 @@ ChartJS.register(
 );
 
 function Dashboard() {
-  
-  
-
   const [dashboard, setDashboard] = useState(null);
   const [stats, setStats] = useState(null);
-  const [days, setDays] = useState(30);
+  const [days, setDays] = useState("all");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const getAuthHeaders = () => ({
     headers: {
@@ -36,20 +35,40 @@ function Dashboard() {
     }
   });
 
-    useEffect(() => {
-      axios.get(`http://localhost:8000/api/dashboard?days=${days}`, getAuthHeaders())
-        .then(res => setDashboard(res.data));
-    }, [days]);
+  useEffect(() => {
+    const controller = new AbortController();
 
+    setLoading(true);
+    setError("");
 
-    useEffect(() => {
+    Promise.all([
+      axios.get(`http://localhost:8000/api/dashboard?days=${days}`, {
+        ...getAuthHeaders(),
+        signal: controller.signal
+      }),
       axios.get(`http://localhost:8000/api/stats?days=${days}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`
+        ...getAuthHeaders(),
+        signal: controller.signal
+      })
+    ])
+      .then(([dashboardRes, statsRes]) => {
+        setDashboard(dashboardRes.data);
+        setStats(statsRes.data);
+      })
+      .catch(error => {
+        if (error.name !== "CanceledError") {
+          console.error("Erreur chargement dashboard:", error);
+          setError("Impossible de charger le dashboard. Vérifiez le serveur API.");
         }
       })
-      .then(res => setStats(res.data));
-    }, [days]);
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
+      });
+
+    return () => controller.abort();
+  }, [days]);
 
     const ventesChart = stats && {
         labels: stats.ventes.map(v => v.date),
@@ -72,7 +91,7 @@ function Dashboard() {
       const token = localStorage.getItem("token");
 
       const res = await axios.get(
-        "http://localhost:8000/api/report/pdf",
+        `http://localhost:8000/api/report/pdf?days=${days}`,
         {
           headers: {
             Authorization: `Bearer ${token}`
@@ -91,8 +110,9 @@ function Dashboard() {
 
 
 
-  if (!dashboard) return <p>Loading...</p>;
-  if (!stats) return <p>Loading charts...</p>;
+  if (loading) return <p>Loading dashboard...</p>;
+  if (error) return <p className="p-6 text-red-600">{error}</p>;
+  if (!dashboard || !stats) return <p className="p-6 text-red-600">Dashboard data introuvable.</p>;
 
   return (
   <div className="p-6">
@@ -100,8 +120,6 @@ function Dashboard() {
     <h1 className="text-2xl font-bold mb-6">📊 Dashboard</h1>
 
       <div className="mb-4 flex gap-3">
-
-        <div className="mb-4 flex gap-3">
 
         <button
           onClick={() => setDays(7)}
@@ -124,7 +142,12 @@ function Dashboard() {
           30j
         </button>
 
-      </div>
+        <button
+          onClick={() => setDays("all")}
+          className={days === "all" ? "bg-indigo-500 text-white px-3 py-1 rounded" : "bg-gray-200 px-3 py-1 rounded"}
+        >
+          All time
+        </button>
 
     </div>
 
@@ -213,8 +236,9 @@ function Dashboard() {
 
       <h3 className="text-lg font-semibold mb-4">🧾 Dernières ventes</h3>
 
+      <div className="max-h-[32rem] overflow-y-auto pr-2">
       {dashboard.ventes.map(v => (
-        <div key={v.id} className="border-b py-3">
+        <div key={v.id} className="border-b py-3 last:border-b-0">
 
           <div className="flex justify-between">
             <strong>Vente #{v.id}</strong>
@@ -237,6 +261,7 @@ function Dashboard() {
 
         </div>
       ))}
+      </div>
 
     </div>
 
