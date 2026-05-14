@@ -1,12 +1,16 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { HelpCircle, Moon } from "lucide-react";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+
 
 function Login() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [keepSignedIn, setKeepSignedIn] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -73,14 +77,28 @@ function Login() {
                 
               </div>
 
+            <div className="relative">
+
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="********"
                 className="w-full mt-2 p-3 rounded-xl bg-gray-100 focus:ring-2 focus:ring-indigo-500 outline-none"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
+
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-6 text-gray-500"
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+
+            </div>
+              
+              
             </div>
 
             {/* REMEMBER */}
