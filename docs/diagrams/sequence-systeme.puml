@@ -1,0 +1,47 @@
+@startuml
+title Sequences - Routes systeme et techniques
+
+scale max 1050 width
+skinparam dpi 150
+skinparam pageMargin 10
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 10
+skinparam sequenceMessageFontSize 9
+skinparam sequenceParticipantFontSize 10
+actor "Visiteur" as Visiteur
+actor "Developpeur" as Dev
+participant "Route web" as Web
+participant "Vue welcome" as Welcome
+participant "API Laravel" as API
+participant "BackupController" as Backup
+participant "mysqldump" as Dump
+database "Base pharmacy" as DB
+collections "storage" as Storage
+participant "Migrations" as Migrations
+
+== Accueil web ==
+Visiteur -> Web : GET /
+Web -> Welcome : view welcome
+Welcome --> Web : HTML
+Web --> Visiteur : page accueil
+
+== Sauvegarde SQL publique ==
+Visiteur -> API : GET /api/backup
+API -> Backup : backup()
+Backup -> Backup : generer nom backup date
+Backup -> Dump : mysqldump --user=root pharmacy
+Dump -> DB : lire schema et donnees
+DB --> Dump : contenu SQL
+Dump -> Storage : ecrire backup.sql
+Storage --> Backup : fichier pret
+Backup --> API : download et deleteFileAfterSend
+API --> Visiteur : fichier SQL
+
+== Migration incoherente observee ==
+Dev -> Migrations : lire add_image_to_produits_table
+Migrations -> DB : ALTER TABLE produits ADD image
+DB --> Migrations : echec probable si produits absente
+Migrations --> Dev : table medicaments possede deja image
+
+@enduml

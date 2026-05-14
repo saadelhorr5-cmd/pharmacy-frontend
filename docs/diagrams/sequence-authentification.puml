@@ -1,0 +1,70 @@
+@startuml
+title Sequences - Authentification et session
+
+scale max 1050 width
+skinparam dpi 150
+skinparam pageMargin 10
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 10
+skinparam sequenceMessageFontSize 9
+skinparam sequenceParticipantFontSize 10
+actor "Visiteur" as Visiteur
+actor "Utilisateur" as Utilisateur
+participant "Frontend React" as Front
+participant "API Laravel" as API
+participant "AuthController" as Auth
+participant "Middleware Sanctum" as Sanctum
+database "Base de donnees" as DB
+participant "localStorage" as LS
+
+== Inscription publique ==
+Visiteur -> API : POST /api/register
+API -> Auth : register(request)
+Auth -> DB : INSERT users
+DB --> Auth : utilisateur cree
+Auth --> API : JSON utilisateur
+API --> Visiteur : 200 OK
+
+== Connexion ==
+Visiteur -> Front : Saisir email et mot de passe
+Front -> API : POST /api/login
+API -> Auth : login(request)
+Auth -> DB : SELECT users WHERE email
+DB --> Auth : utilisateur ou vide
+Auth -> Auth : verifier mot de passe
+
+alt identifiants invalides
+  Auth --> API : erreur Invalid credentials
+  API --> Front : 401 Unauthorized
+  Front --> Visiteur : Afficher Login failed
+else identifiants valides
+  Auth -> DB : INSERT personal_access_tokens
+  DB --> Auth : token cree
+  Auth --> API : user + token
+  API --> Front : JSON session
+  Front -> LS : set token
+  Front -> LS : set user
+  Front --> Visiteur : Rediriger selon role
+end
+
+== Deconnexion frontend ==
+Utilisateur -> Front : Cliquer Logout
+Front -> LS : clear()
+Front --> Utilisateur : Rediriger /login
+
+== Deconnexion API disponible ==
+Utilisateur -> API : POST /api/logout avec Bearer token
+API -> Sanctum : verifier token
+Sanctum -> DB : SELECT personal_access_tokens
+DB --> Sanctum : token valide
+Sanctum --> API : utilisateur authentifie
+API -> DB : DELETE token courant
+DB --> API : token supprime
+API --> Utilisateur : JSON Logged out
+
+== Route login GET ==
+Visiteur -> API : GET /api/login
+API --> Visiteur : 401 Unauthenticated
+
+@enduml

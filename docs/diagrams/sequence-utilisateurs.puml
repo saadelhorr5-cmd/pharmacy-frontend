@@ -1,0 +1,79 @@
+@startuml
+title Sequences - Gestion des utilisateurs
+
+scale max 1050 width
+skinparam dpi 150
+skinparam pageMargin 10
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 10
+skinparam sequenceMessageFontSize 9
+skinparam sequenceParticipantFontSize 10
+actor "Admin" as Admin
+participant "UsersPage" as Page
+participant "API Laravel" as API
+participant "Middleware Sanctum" as Sanctum
+participant "UserController" as Ctrl
+database "Base de donnees" as DB
+
+== Liste utilisateurs ==
+Admin -> Page : Ouvrir /users
+Page -> API : GET /api/users avec token
+API -> Sanctum : verifier token
+Sanctum -> DB : SELECT personal_access_tokens
+DB --> Sanctum : token valide
+API -> Ctrl : index()
+Ctrl -> DB : SELECT id,name,email,role FROM users
+DB --> Ctrl : utilisateurs
+Ctrl --> API : JSON utilisateurs
+API --> Page : users
+Page --> Admin : Afficher formulaire et liste
+
+== Ajouter utilisateur ==
+Admin -> Page : Saisir nom email password role
+Page -> API : POST /api/users
+API -> Ctrl : store(request)
+Ctrl -> DB : INSERT users avec password bcrypt
+DB --> Ctrl : utilisateur cree
+Ctrl --> API : JSON utilisateur
+API --> Page : succes
+Page -> API : GET /api/users
+API --> Page : liste actualisee
+
+== Modifier utilisateur ==
+Admin -> Page : Cliquer Modifier
+Page --> Admin : Pre-remplir formulaire
+Admin -> Page : Modifier donnees
+Page -> API : PUT /api/users/{id}
+API -> Ctrl : update(request, id)
+Ctrl -> DB : SELECT users WHERE id
+DB --> Ctrl : utilisateur
+alt password fourni
+  Ctrl -> Ctrl : bcrypt(password)
+end
+Ctrl -> DB : UPDATE users
+DB --> Ctrl : ok
+Ctrl --> API : message updated
+API --> Page : succes
+Page -> API : GET /api/users
+API --> Page : liste actualisee
+
+== Supprimer utilisateur ==
+Admin -> Page : Cliquer Delete
+Page -> API : DELETE /api/users/{id}
+API -> Ctrl : destroy(id)
+Ctrl -> DB : DELETE users
+DB --> Ctrl : ok
+Ctrl --> API : message deleted
+API --> Page : succes
+Page -> API : GET /api/users
+API --> Page : liste actualisee
+
+== Route ajoutee par apiResource mais methode absente ==
+Admin -> API : GET /api/users/{user}
+API -> Sanctum : verifier token
+API -> Ctrl : show(user)
+Ctrl --> API : methode show absente
+API --> Admin : erreur serveur probable
+
+@enduml

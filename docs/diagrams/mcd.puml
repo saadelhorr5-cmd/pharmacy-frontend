@@ -1,0 +1,158 @@
+@startuml
+title MCD - Systeme complet de gestion de pharmacie
+
+scale max 1050 width
+skinparam dpi 150
+skinparam pageMargin 10
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 10
+skinparam entityFontSize 10
+skinparam noteFontSize 9
+skinparam linetype ortho
+hide circle
+
+entity "Utilisateur" as Utilisateur {
+  id
+  nom
+  email
+  mot_de_passe
+  role
+  email_verifie_le
+  remember_token
+}
+
+entity "Medicament" as Medicament {
+  id
+  nom
+  prix
+  quantite_stock
+  date_expiration
+  image
+}
+
+entity "Vente" as Vente {
+  id
+  total
+  date_creation
+  date_modification
+}
+
+entity "Detail vente" as DetailVente {
+  id
+  quantite
+  prix
+  date_creation
+  date_modification
+}
+
+entity "Token acces" as TokenAcces {
+  id
+  type_proprietaire
+  proprietaire_id
+  nom
+  token
+  capacites
+  derniere_utilisation
+  expiration
+}
+
+entity "Session" as Session {
+  id
+  adresse_ip
+  user_agent
+  payload
+  derniere_activite
+}
+
+entity "Token reset mot de passe" as TokenReset {
+  email
+  token
+  date_creation
+}
+
+entity "Cache" as Cache {
+  cle
+  valeur
+  expiration
+}
+
+entity "Verrou cache" as CacheLock {
+  cle
+  proprietaire
+  expiration
+}
+
+entity "Job" as Job {
+  id
+  file
+  payload
+  tentatives
+  reserve_le
+  disponible_le
+  cree_le
+}
+
+entity "Lot job" as JobBatch {
+  id
+  nom
+  total_jobs
+  jobs_en_attente
+  jobs_echoues
+  options
+}
+
+entity "Job echoue" as FailedJob {
+  id
+  uuid
+  connexion
+  file
+  payload
+  exception
+  echec_le
+}
+
+entity "Rapport PDF" as Rapport {
+  periode
+  total_revenus
+  total_ventes
+  stocks_faibles
+  pharmacie
+}
+
+entity "Sauvegarde SQL" as Backup {
+  nom_fichier
+  chemin
+  base_donnees
+  date_generation
+}
+
+Utilisateur ||--o{ Vente : effectue
+Vente ||--|{ DetailVente : contient
+Medicament ||--o{ DetailVente : concerne
+Utilisateur ||--o{ TokenAcces : possede
+Utilisateur ||--o{ Session : ouvre
+Utilisateur ||--o{ TokenReset : demande
+Cache ||--o{ CacheLock : verrouille
+JobBatch ||--o{ Job : regroupe
+JobBatch ||--o{ FailedJob : trace
+Utilisateur ||--o{ Rapport : consulte
+Backup ..> Utilisateur : accessible publiquement
+
+note right of Utilisateur
+Roles du code:
+admin
+pharmacien
+end note
+
+note bottom of Medicament
+Stock faible quand quantite < 5.
+Image stockee dans public/images.
+end note
+
+note bottom of DetailVente
+Le champ prix correspond au prix
+unitaire enregistre au moment de la vente.
+end note
+
+@enduml

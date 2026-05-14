@@ -1,0 +1,157 @@
+@startuml
+title MPD - Schema physique Laravel
+
+scale max 1050 width
+skinparam dpi 150
+skinparam pageMargin 10
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 10
+skinparam entityFontSize 10
+skinparam noteFontSize 9
+skinparam linetype ortho
+hide circle
+
+entity "users" as users {
+  * id : bigint <<PK>>
+  --
+  name : varchar
+  email : varchar <<unique>>
+  email_verified_at : timestamp nullable
+  password : varchar
+  role : varchar default pharmacien
+  remember_token : varchar nullable
+  created_at : timestamp
+  updated_at : timestamp
+}
+
+entity "password_reset_tokens" as password_reset_tokens {
+  * email : varchar <<PK>>
+  --
+  token : varchar
+  created_at : timestamp nullable
+}
+
+entity "sessions" as sessions {
+  * id : varchar <<PK>>
+  --
+  user_id : bigint nullable <<FK>>
+  ip_address : varchar nullable
+  user_agent : text nullable
+  payload : longtext
+  last_activity : integer
+}
+
+entity "personal_access_tokens" as personal_access_tokens {
+  * id : bigint <<PK>>
+  --
+  tokenable_type : varchar
+  tokenable_id : bigint
+  name : text
+  token : varchar(64) <<unique>>
+  abilities : text nullable
+  last_used_at : timestamp nullable
+  expires_at : timestamp nullable
+  created_at : timestamp
+  updated_at : timestamp
+}
+
+entity "medicaments" as medicaments {
+  * id : bigint <<PK>>
+  --
+  nom : varchar
+  prix : decimal(10,2)
+  quantite : integer
+  date_expiration : date
+  image : varchar nullable
+  created_at : timestamp
+  updated_at : timestamp
+}
+
+entity "ventes" as ventes {
+  * id : bigint <<PK>>
+  --
+  total : decimal(10,2)
+  user_id : bigint <<FK>>
+  created_at : timestamp
+  updated_at : timestamp
+}
+
+entity "vente_details" as vente_details {
+  * id : bigint <<PK>>
+  --
+  vente_id : bigint <<FK>>
+  medicament_id : bigint <<FK>>
+  quantite : integer
+  prix : decimal(10,2)
+  created_at : timestamp
+  updated_at : timestamp
+}
+
+entity "cache" as cache {
+  * key : varchar <<PK>>
+  --
+  value : mediumtext
+  expiration : integer
+}
+
+entity "cache_locks" as cache_locks {
+  * key : varchar <<PK>>
+  --
+  owner : varchar
+  expiration : integer
+}
+
+entity "jobs" as jobs {
+  * id : bigint <<PK>>
+  --
+  queue : varchar
+  payload : longtext
+  attempts : tinyint
+  reserved_at : integer nullable
+  available_at : integer
+  created_at : integer
+}
+
+entity "job_batches" as job_batches {
+  * id : varchar <<PK>>
+  --
+  name : varchar
+  total_jobs : integer
+  pending_jobs : integer
+  failed_jobs : integer
+  failed_job_ids : longtext
+  options : mediumtext nullable
+  cancelled_at : integer nullable
+  created_at : integer
+  finished_at : integer nullable
+}
+
+entity "failed_jobs" as failed_jobs {
+  * id : bigint <<PK>>
+  --
+  uuid : varchar <<unique>>
+  connection : text
+  queue : text
+  payload : longtext
+  exception : longtext
+  failed_at : timestamp
+}
+
+users ||--o{ ventes : user_id
+ventes ||--|{ vente_details : vente_id
+medicaments ||--o{ vente_details : medicament_id
+users ||--o{ sessions : user_id
+users ||--o{ personal_access_tokens : tokenable_id
+users ||--o{ password_reset_tokens : email
+cache ||--o{ cache_locks : key
+job_batches ||--o{ jobs : groupement logique
+job_batches ||--o{ failed_jobs : erreurs
+
+note bottom
+La migration 2026_04_29_151823 cible produits.image,
+mais aucune table produits n'est creee dans les migrations lues.
+La table medicaments contient deja le champ image.
+end note
+
+@enduml

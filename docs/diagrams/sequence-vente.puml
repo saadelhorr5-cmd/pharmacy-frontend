@@ -1,0 +1,82 @@
+@startuml
+title Sequences - Ventes et panier
+
+scale max 1050 width
+skinparam dpi 150
+skinparam pageMargin 10
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 10
+skinparam sequenceMessageFontSize 9
+skinparam sequenceParticipantFontSize 10
+actor "Admin ou Pharmacien" as User
+participant "VentesPage" as Page
+participant "API Laravel" as API
+participant "Middleware Sanctum" as Sanctum
+participant "MedicamentController" as Ctrl
+database "Base de donnees" as DB
+
+== Chargement de la page ventes ==
+User -> Page : Ouvrir /ventes
+Page -> API : GET /api/medicaments avec token
+API -> Sanctum : verifier token
+Sanctum -> DB : SELECT personal_access_tokens
+DB --> Sanctum : token valide
+API -> DB : SELECT medicaments
+DB --> API : medicaments
+API --> Page : JSON medicaments
+
+Page -> API : GET /api/ventes avec token
+API -> DB : SELECT ventes latest
+API -> DB : SELECT vente_details et medicaments
+DB --> API : ventes liees
+API --> Page : JSON ventes
+Page --> User : Afficher produits, panier et historique si admin
+
+== Preparation panier cote frontend ==
+loop Chaque produit choisi
+  User -> Page : Rechercher medicament
+  User -> Page : Ajouter au panier
+  User -> Page : Augmenter ou diminuer quantite
+  Page -> Page : Calculer total
+  Page -> Page : Calculer stock restant
+end
+
+== Validation vente ==
+User -> Page : Cliquer Valider Vente
+Page -> Page : Verifier quantite <= stock local
+
+alt stock local insuffisant
+  Page --> User : Message Stock insuffisant
+else stock local disponible
+  Page -> API : POST /api/ventes {items,total}
+  API -> Sanctum : verifier token
+  API -> Ctrl : vente(request)
+  Ctrl -> Ctrl : recalculer total depuis items
+  Ctrl -> DB : INSERT ventes(total,user_id)
+  DB --> Ctrl : vente creee
+
+  loop Chaque item
+    Ctrl -> DB : SELECT medicaments WHERE id
+    DB --> Ctrl : medicament
+    alt stock serveur suffisant
+      Ctrl -> DB : INSERT vente_details
+      Ctrl -> DB : UPDATE medicaments quantite decremente
+      DB --> Ctrl : ok
+    else stock serveur insuffisant
+      Ctrl --> API : 400 Stock insuffisant
+      API --> Page : erreur
+      Page --> User : Message erreur
+    end
+  end
+
+  Ctrl --> API : message Vente enregistree
+  API --> Page : succes
+  Page -> Page : Vider panier
+  Page -> API : GET /api/medicaments
+  Page -> API : GET /api/ventes
+  API --> Page : donnees actualisees
+  Page --> User : Message succes
+end
+
+@enduml

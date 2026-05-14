@@ -1,0 +1,107 @@
+@startuml
+title Diagramme de cas d'utilisation - PharmaSystem
+
+scale max 1050 width
+skinparam dpi 150
+skinparam pageMargin 10
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 10
+skinparam usecaseFontSize 10
+skinparam actorFontSize 10
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Visiteur" as Visiteur
+actor "Utilisateur authentifie" as Utilisateur
+actor "Pharmacien" as Pharmacien
+actor "Admin" as Admin
+actor "Systeme Laravel" as Systeme
+
+Utilisateur <|-- Pharmacien
+Utilisateur <|-- Admin
+
+rectangle "Application pharmacie" {
+  usecase "Afficher accueil web" as UC_Accueil
+  usecase "Creer compte public" as UC_Register
+  usecase "Se connecter" as UC_Login
+  usecase "Creer token Sanctum" as UC_Token
+  usecase "Se deconnecter" as UC_Logout
+  usecase "Verifier token" as UC_VerifToken
+  usecase "Consulter medicaments" as UC_ListMed
+  usecase "Rechercher medicament" as UC_SearchMed
+  usecase "Ajouter medicament" as UC_AddMed
+  usecase "Augmenter stock existant" as UC_IncStock
+  usecase "Televerser image medicament" as UC_Image
+  usecase "Modifier medicament" as UC_EditMed
+  usecase "Supprimer medicament" as UC_DeleteMed
+  usecase "Preparer panier" as UC_Cart
+  usecase "Verifier stock" as UC_CheckStock
+  usecase "Enregistrer vente" as UC_Sale
+  usecase "Consulter ventes" as UC_ListSales
+  usecase "Consulter dashboard" as UC_Dashboard
+  usecase "Filtrer par periode" as UC_Period
+  usecase "Consulter statistiques" as UC_Stats
+  usecase "Detecter stock faible" as UC_LowStock
+  usecase "Telecharger rapport PDF" as UC_PDF
+  usecase "Gerer utilisateurs" as UC_Users
+  usecase "Ajouter utilisateur" as UC_AddUser
+  usecase "Modifier utilisateur" as UC_EditUser
+  usecase "Supprimer utilisateur" as UC_DeleteUser
+  usecase "Telecharger sauvegarde SQL" as UC_Backup
+  usecase "Recevoir erreur non authentifie" as UC_Unauth
+}
+
+Visiteur -- UC_Accueil
+Visiteur -- UC_Register
+Visiteur -- UC_Login
+Visiteur -- UC_Backup
+Visiteur -- UC_Unauth
+
+Utilisateur -- UC_Logout
+Utilisateur -- UC_ListMed
+Utilisateur -- UC_Cart
+Utilisateur -- UC_Sale
+Utilisateur -- UC_ListSales
+Utilisateur -- UC_Dashboard
+Utilisateur -- UC_Stats
+Utilisateur -- UC_PDF
+
+Pharmacien -- UC_ListMed
+Pharmacien -- UC_Cart
+Pharmacien -- UC_Sale
+
+Admin -- UC_AddMed
+Admin -- UC_EditMed
+Admin -- UC_DeleteMed
+Admin -- UC_Users
+Admin -- UC_Backup
+
+UC_Login .> UC_Token : include
+UC_Logout .> UC_VerifToken : include
+UC_ListMed .> UC_VerifToken : include
+UC_AddMed .> UC_VerifToken : include
+UC_EditMed .> UC_VerifToken : include
+UC_DeleteMed .> UC_VerifToken : include
+UC_AddMed .> UC_IncStock : extend
+UC_AddMed .> UC_Image : extend
+UC_EditMed .> UC_Image : extend
+UC_Cart .> UC_SearchMed : include
+UC_Sale .> UC_CheckStock : include
+UC_ListSales .> UC_VerifToken : include
+UC_Dashboard .> UC_VerifToken : include
+UC_Dashboard .> UC_Period : include
+UC_Dashboard .> UC_LowStock : include
+UC_Stats .> UC_Period : include
+UC_PDF .> UC_Period : include
+UC_PDF .> UC_LowStock : include
+UC_Users .> UC_AddUser : include
+UC_Users .> UC_EditUser : include
+UC_Users .> UC_DeleteUser : include
+
+Systeme -- UC_Token
+Systeme -- UC_VerifToken
+Systeme -- UC_CheckStock
+Systeme -- UC_LowStock
+
+@enduml

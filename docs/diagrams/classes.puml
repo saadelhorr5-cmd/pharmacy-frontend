@@ -1,0 +1,236 @@
+@startuml
+title Diagramme de classes - Frontend React et Backend Laravel
+
+scale max 1050 width
+skinparam dpi 150
+skinparam pageMargin 10
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 9
+skinparam classFontSize 9
+skinparam classAttributeFontSize 8
+skinparam noteFontSize 8
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+package "Frontend React" {
+  class App {
+    - user
+    - open
+    + handleLogout()
+    + rendreRoutes()
+  }
+
+  class LoginPage {
+    - email
+    - password
+    - keepSignedIn
+    + handleLogin(e)
+  }
+
+  class DashboardPage {
+    - dashboard
+    - stats
+    - days
+    - loading
+    - error
+    + getAuthHeaders()
+    + downloadPDF()
+  }
+
+  class MedicamentsPage {
+    - medicaments
+    - form
+    - editId
+    - search
+    + fetchMedicaments()
+    + handleSubmit(e)
+    + editMedicament(m)
+    + deleteMedicament(id)
+  }
+
+  class VentesPage {
+    - medicaments
+    - cart
+    - ventes
+    - search
+    - message
+    - success
+    + fetchMedicaments()
+    + fetchVentes()
+    + addToCart(m)
+    + increase(id)
+    + decrease(id)
+    + updateQuantite(id, q)
+    + removeFromCart(id)
+    + validerVente()
+    + getRemainingStock(m)
+  }
+
+  class UsersPage {
+    - users
+    - form
+    - editingUserId
+    + fetchUsers()
+    + addUser(e)
+    + editUser(user)
+    + deleteUser(id)
+  }
+
+  class AxiosClient {
+    + get(url, config)
+    + post(url, body, config)
+    + put(url, body, config)
+    + delete(url, config)
+  }
+
+  class LocalStorage {
+    + token
+    + user
+    + clear()
+  }
+}
+
+package "Backend Laravel" {
+  abstract class Controller
+
+  class AuthController {
+    + register(request)
+    + login(request)
+  }
+
+  class MedicamentController {
+    + index()
+    + store(request)
+    + show(id)
+    + update(request, id)
+    + destroy(id)
+    + vente(request)
+  }
+
+  class UserController {
+    + index()
+    + store(request)
+    + destroy(id)
+    + update(request, id)
+  }
+
+  class DashboardController {
+    + index(request)
+    + stats(request)
+    - getDays(request)
+  }
+
+  class BackupController {
+    + backup()
+  }
+
+  class DomPDF {
+    + loadView(view, data)
+    + download(name)
+  }
+
+  class Mysqldump {
+    + exporter(base, fichier)
+  }
+
+  class ReportView {
+    + rendreRapport()
+  }
+}
+
+package "Modeles Eloquent" {
+  class User {
+    + id
+    + name
+    + email
+    + password
+    + role
+    + email_verified_at
+    + remember_token
+    + casts()
+    + createToken(name)
+    + currentAccessToken()
+  }
+
+  class Medicament {
+    + id
+    + nom
+    + prix
+    + quantite
+    + date_expiration
+    + image
+  }
+
+  class Vente {
+    + id
+    + total
+    + user_id
+    + details()
+    + user()
+  }
+
+  class VenteDetail {
+    + id
+    + vente_id
+    + medicament_id
+    + quantite
+    + prix
+    + medicament()
+  }
+
+  class PersonalAccessToken {
+    + id
+    + tokenable_type
+    + tokenable_id
+    + name
+    + token
+    + abilities
+    + last_used_at
+    + expires_at
+  }
+}
+
+App --> LoginPage : route /login
+App --> DashboardPage : admin
+App --> MedicamentsPage : admin
+App --> VentesPage : admin ou pharmacien
+App --> UsersPage : admin
+App --> LocalStorage : lit session
+
+LoginPage --> AxiosClient : POST /api/login
+LoginPage --> LocalStorage : stocke token et user
+DashboardPage --> AxiosClient : GET dashboard stats report
+MedicamentsPage --> AxiosClient : CRUD medicaments
+VentesPage --> AxiosClient : ventes et medicaments
+UsersPage --> AxiosClient : CRUD users
+
+Controller <|-- AuthController
+Controller <|-- MedicamentController
+Controller <|-- UserController
+Controller <|-- DashboardController
+Controller <|-- BackupController
+
+AuthController ..> User : cree et authentifie
+AuthController ..> PersonalAccessToken : cree token
+MedicamentController ..> Medicament : gere stock
+MedicamentController ..> Vente : cree vente
+MedicamentController ..> VenteDetail : cree detail
+UserController ..> User : gere
+DashboardController ..> Vente : calcule indicateurs
+DashboardController ..> Medicament : consulte stock
+BackupController ..> Mysqldump : execute
+DomPDF ..> ReportView : rend
+DashboardPage ..> DomPDF : recoit PDF
+
+User "1" --> "0..*" Vente : effectue
+Vente "1" --> "1..*" VenteDetail : contient
+Medicament "1" --> "0..*" VenteDetail : vendu dans
+User "1" --> "0..*" PersonalAccessToken : possede
+
+note bottom of UserController
+Route apiResource ajoute aussi show,
+mais la methode show est absente.
+end note
+
+@enduml

@@ -1,0 +1,75 @@
+@startuml
+title Sequences - Dashboard, statistiques et rapport PDF
+
+scale max 1050 width
+skinparam dpi 150
+skinparam pageMargin 10
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 10
+skinparam sequenceMessageFontSize 9
+skinparam sequenceParticipantFontSize 10
+actor "Utilisateur authentifie" as User
+participant "DashboardPage" as Page
+participant "API Laravel" as API
+participant "Middleware Sanctum" as Sanctum
+participant "DashboardController" as Ctrl
+participant "Route report PDF" as ReportRoute
+participant "DomPDF" as PDF
+participant "Vue report.blade.php" as View
+database "Base de donnees" as DB
+participant "Navigateur" as Browser
+
+== Chargement dashboard ==
+User -> Page : Ouvrir /dashboard
+Page -> API : GET /api/dashboard?days={periode}
+Page -> API : GET /api/stats?days={periode}
+
+API -> Sanctum : verifier token
+Sanctum -> DB : SELECT personal_access_tokens
+DB --> Sanctum : token valide
+
+API -> Ctrl : index(request)
+Ctrl -> Ctrl : getDays(request)
+Ctrl -> DB : SELECT ventes avec details.medicament et user
+Ctrl -> DB : SELECT medicaments WHERE quantite < 5
+DB --> Ctrl : donnees
+Ctrl --> API : totalRevenue totalVentes lowStock ventes
+API --> Page : JSON dashboard
+
+API -> Ctrl : stats(request)
+Ctrl -> Ctrl : getDays(request)
+Ctrl -> DB : SELECT ventes
+Ctrl -> DB : SELECT medicaments nom quantite
+DB --> Ctrl : donnees stats
+Ctrl --> API : ventes par date et stocks
+API --> Page : JSON stats
+
+Page --> User : Afficher cartes, graphiques et dernieres ventes
+
+== Changement de periode ==
+User -> Page : Choisir 7j, 14j, 30j ou all
+Page -> API : GET /api/dashboard?days={periode}
+Page -> API : GET /api/stats?days={periode}
+API --> Page : donnees filtrees
+Page --> User : Rafraichir affichage
+
+== Rapport PDF ==
+User -> Page : Cliquer Telecharger PDF
+Page -> API : GET /api/report/pdf?days={periode}
+API -> Sanctum : verifier token
+API -> ReportRoute : preparer rapport
+ReportRoute -> DB : SELECT SUM ventes.total
+ReportRoute -> DB : SELECT COUNT ventes
+ReportRoute -> DB : SELECT medicaments WHERE quantite < 5
+DB --> ReportRoute : indicateurs
+ReportRoute -> PDF : loadView report donnees
+PDF -> View : rendre HTML
+View --> PDF : HTML
+PDF --> ReportRoute : fichier PDF
+ReportRoute --> API : download report.pdf
+API --> Page : blob PDF
+Page -> Browser : creer URL temporaire
+Browser --> User : Telecharger report.pdf
+
+@enduml

@@ -1,0 +1,101 @@
+@startuml
+title Sequences - Gestion des medicaments
+
+scale max 1050 width
+skinparam dpi 150
+skinparam pageMargin 10
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 10
+skinparam sequenceMessageFontSize 9
+skinparam sequenceParticipantFontSize 10
+actor "Admin" as Admin
+actor "Utilisateur" as Utilisateur
+participant "MedicamentsPage" as Page
+participant "API Laravel" as API
+participant "Middleware Sanctum" as Sanctum
+participant "MedicamentController" as Ctrl
+database "Base de donnees" as DB
+collections "public/images" as Images
+
+== Consultation ==
+Utilisateur -> Page : Ouvrir medicaments ou ventes
+Page -> API : GET /api/medicaments avec token
+API -> Sanctum : verifier token
+Sanctum -> DB : SELECT personal_access_tokens
+DB --> Sanctum : token valide
+API -> Ctrl : index()
+Ctrl -> DB : SELECT medicaments
+DB --> Ctrl : liste medicaments
+Ctrl --> API : JSON medicaments
+API --> Page : medicaments
+Page --> Utilisateur : Afficher liste et recherche
+
+== Ajout ou augmentation ==
+Admin -> Page : Remplir formulaire
+Page -> API : POST /api/medicaments
+API -> Sanctum : verifier token
+API -> Ctrl : store(request)
+Ctrl -> Ctrl : verifier role admin
+
+alt role non admin
+  Ctrl --> API : 403 Unauthorized
+  API --> Page : erreur
+else role admin
+  Ctrl -> DB : SELECT medicaments WHERE nom
+  DB --> Ctrl : medicament ou vide
+  alt medicament existe
+    Ctrl -> DB : UPDATE medicaments quantite et prix
+    opt image fournie
+      Ctrl -> Images : deplacer fichier image
+      Ctrl -> DB : UPDATE medicaments.image
+    end
+    DB --> Ctrl : ok
+    Ctrl --> API : message Quantite mise a jour
+  else nouveau medicament
+    opt image fournie
+      Ctrl -> Images : deplacer fichier image
+    end
+    Ctrl -> DB : INSERT medicaments
+    DB --> Ctrl : medicament cree
+    Ctrl --> API : JSON medicament
+  end
+  API --> Page : succes
+  Page -> API : GET /api/medicaments
+  API --> Page : liste actualisee
+end
+
+== Modification ==
+Admin -> Page : Cliquer Edit
+Page --> Admin : Pre-remplir formulaire
+Admin -> Page : Modifier champs
+Page -> API : PUT /api/medicaments/{id}
+API -> Ctrl : update(request, id)
+Ctrl -> Ctrl : verifier role admin
+
+alt role non admin
+  Ctrl --> API : 403 Unauthorized
+else role admin
+  Ctrl -> DB : SELECT medicaments WHERE id
+  Ctrl -> DB : UPDATE medicaments
+  DB --> Ctrl : ok
+  Ctrl --> API : JSON medicament
+end
+API --> Page : reponse
+
+== Suppression ==
+Admin -> Page : Cliquer Delete
+Page -> API : DELETE /api/medicaments/{id}
+API -> Ctrl : destroy(id)
+Ctrl -> Ctrl : verifier role admin
+
+alt role non admin
+  Ctrl --> API : 403 Unauthorized
+else role admin
+  Ctrl -> DB : DELETE medicaments
+  DB --> Ctrl : ok
+  Ctrl --> API : message deleted
+end
+API --> Page : reponse
+
+@enduml
