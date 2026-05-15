@@ -1,16 +1,20 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { HelpCircle, Moon } from "lucide-react";
+import { Moon } from "lucide-react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-
+import { useTranslation } from "react-i18next";
 
 function Login() {
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [keepSignedIn, setKeepSignedIn] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const { t, i18n } = useTranslation();
 
+  const changeLanguage = (lang) => {
+    i18n.changeLanguage(lang);
+    localStorage.setItem("lang", lang);
+  };
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -19,47 +23,48 @@ function Login() {
       email,
       password
     })
-    .then(res => {
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
-      window.location.href = "/dashboard";
-    })
-    .catch(() => alert("Login failed"));
+      .then(res => {
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+        window.location.href = "/dashboard";
+      })
+      .catch(() => alert(t("login.failed")));
   };
 
   return (
     <div className="min-h-screen bg-[#f5f7f9] flex flex-col">
-
-      {/* HEADER */}
       <header className="fixed top-0 w-full flex justify-between items-center px-8 h-16 bg-[#f5f7f9]">
         <h1 className="text-2xl font-bold text-[#4a40e0]">
           PharmaSys
         </h1>
 
-        <div className="flex gap-4 text-gray-500">
-          
+        <div className="flex items-center gap-4 text-gray-500">
+          <select
+            value={i18n.language}
+            onChange={(e) => changeLanguage(e.target.value)}
+            className="rounded-lg border bg-white px-3 py-2 text-sm outline-none"
+            aria-label={t("language")}
+          >
+            <option value="fr">FR</option>
+            <option value="en">EN</option>
+          </select>
           <Moon className="w-5 h-5 cursor-pointer hover:text-indigo-500" />
         </div>
       </header>
 
-      {/* MAIN */}
       <div className="flex-grow flex items-center justify-center pt-16">
-
         <div className="bg-white p-10 rounded-2xl shadow w-[420px]">
-
           <h1 className="text-3xl font-bold text-center mb-2">
-            Welcome Back 👋
+            {t("login.welcome")}
           </h1>
 
           <p className="text-center text-gray-500 mb-8">
-            Login to your Pharma System
+            {t("login.subtitle")}
           </p>
 
           <form onSubmit={handleLogin} className="space-y-5">
-
-            {/* EMAIL */}
             <div>
-              <label className="text-sm font-semibold">Email</label>
+              <label className="text-sm font-semibold">{t("email")}</label>
               <input
                 type="email"
                 placeholder="name@email.com"
@@ -70,85 +75,52 @@ function Login() {
               />
             </div>
 
-            {/* PASSWORD */}
             <div>
-              <div className="flex justify-between">
-                <label className="text-sm font-semibold">Password</label>
-                
+              <label className="text-sm font-semibold">{t("password")}</label>
+
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="********"
+                  className="w-full mt-2 p-3 rounded-xl bg-gray-100 focus:ring-2 focus:ring-indigo-500 outline-none"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-6 text-gray-500"
+                  aria-label="Toggle password"
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
               </div>
-
-            <div className="relative">
-
-              <input
-                type={showPassword ? "text" : "password"}
-                placeholder="********"
-                className="w-full mt-2 p-3 rounded-xl bg-gray-100 focus:ring-2 focus:ring-indigo-500 outline-none"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-6 text-gray-500"
-              >
-                {showPassword ? <FaEyeSlash /> : <FaEye />}
-              </button>
-
-            </div>
-              
-              
             </div>
 
-            {/* REMEMBER */}
-            <div className="flex items-center gap-2">
+            <label className="flex items-center gap-2">
               <input
                 type="checkbox"
                 checked={keepSignedIn}
                 onChange={(e) => setKeepSignedIn(e.target.checked)}
               />
               <span className="text-sm text-gray-500">
-                Keep me signed in
+                {t("login.keepSignedIn")}
               </span>
-            </div>
+            </label>
 
-            {/* BUTTON login */}
-           
             <button
               type="submit"
-              className="w-full py-3 mt-4 rounded-xl 
-              !bg-indigo-600 text-white font-bold 
-              shadow-lg 
-              hover:!bg-indigo-600 
-              focus:!bg-indigo-600 
-              active:!bg-indigo-600 
-              transition"
+              className="w-full py-3 mt-4 rounded-xl !bg-indigo-600 text-white font-bold shadow-lg hover:!bg-indigo-600 focus:!bg-indigo-600 active:!bg-indigo-600 transition"
             >
-              LOGIN
+              {t("login.submit")}
             </button>
-
           </form>
-
         </div>
-
       </div>
-
     </div>
   );
 }
 
 export default Login;
-
-
-
-
-
-
-
-
-
-
-
-
-

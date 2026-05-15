@@ -1,0 +1,71 @@
+{
+  "appName": "PharmaSystem",
+  "language": "Language",
+  "french": "French",
+  "english": "English",
+  "dashboard": "Dashboard",
+  "medicaments": "Medicines",
+  "sales": "Sales",
+  "users": "Users",
+  "logout": "Logout",
+  "accessDenied": "Access denied",
+  "actions": "Actions",
+  "name": "Name",
+  "email": "Email",
+  "password": "Password",
+  "role": "Role",
+  "admin": "Admin",
+  "pharmacist": "Pharmacist",
+  "add": "Add",
+  "update": "Update",
+  "edit": "Edit",
+  "delete": "Delete",
+  "price": "Price",
+  "stock": "Stock",
+  "status": "Status",
+  "low": "Low",
+  "ok": "OK",
+  "total": "Total",
+  "id": "ID",
+  "login": {
+    "welcome": "Welcome back",
+    "subtitle": "Log in to your pharmacy system",
+    "keepSignedIn": "Keep me signed in",
+    "submit": "LOGIN",
+    "failed": "Login failed"
+  },
+  "dashboardPage": {
+    "loading": "Loading dashboard...",
+    "loadError": "Unable to load the dashboard. Check the API server.",
+    "missingData": "Dashboard data not found.",
+    "allTime": "All time",
+    "revenue": "Revenue",
+    "lowStock": "Low stock",
+    "more": "+{{count}} more...",
+    "downloadPdf": "Download PDF",
+    "latestSales": "Latest sales",
+    "saleNumber": "Sale #{{id}}"
+  },
+  "medicamentsPage": {
+    "title": "Medicines",
+    "list": "Medicines list",
+    "quantity": "Quantity",
+    "searchPlaceholder": "Search medicine..."
+  },
+  "salesPage": {
+    "title": "Sales management",
+    "cart": "Cart",
+    "emptyCart": "No products",
+    "addToCart": "Add",
+    "outOfStock": "Out of stock",
+    "validateSale": "Validate sale",
+    "history": "Sales history",
+    "success": "Sale validated successfully",
+    "insufficientStock": "Insufficient stock for {{name}}"
+  },
+  "usersPage": {
+    "title": "Users management",
+    "added": "User added",
+    "updated": "User updated"
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "appName": "PharmaSystem",
+  "language": "Langue",
+  "french": "Francais",
+  "english": "Anglais",
+  "dashboard": "Tableau de bord",
+  "medicaments": "Medicaments",
+  "sales": "Ventes",
+  "users": "Utilisateurs",
+  "logout": "Deconnexion",
+  "accessDenied": "Acces refuse",
+  "actions": "Actions",
+  "name": "Nom",
+  "email": "Email",
+  "password": "Mot de passe",
+  "role": "Role",
+  "admin": "Admin",
+  "pharmacist": "Pharmacien",
+  "add": "Ajouter",
+  "update": "Mettre a jour",
+  "edit": "Modifier",
+  "delete": "Supprimer",
+  "price": "Prix",
+  "stock": "Stock",
+  "status": "Statut",
+  "low": "Faible",
+  "ok": "OK",
+  "total": "Total",
+  "id": "ID",
+  "login": {
+    "welcome": "Bon retour",
+    "subtitle": "Connectez-vous a votre systeme de pharmacie",
+    "keepSignedIn": "Rester connecte",
+    "submit": "CONNEXION",
+    "failed": "Connexion echouee"
+  },
+  "dashboardPage": {
+    "loading": "Chargement du tableau de bord...",
+    "loadError": "Impossible de charger le tableau de bord. Verifiez le serveur API.",
+    "missingData": "Donnees du tableau de bord introuvables.",
+    "allTime": "Toute la periode",
+    "revenue": "Revenu",
+    "lowStock": "Stock faible",
+    "more": "+{{count}} autres...",
+    "downloadPdf": "Telecharger PDF",
+    "latestSales": "Dernieres ventes",
+    "saleNumber": "Vente #{{id}}"
+  },
+  "medicamentsPage": {
+    "title": "Medicaments",
+    "list": "Liste des medicaments",
+    "quantity": "Quantite",
+    "searchPlaceholder": "Rechercher medicament..."
+  },
+  "salesPage": {
+    "title": "Gestion des ventes",
+    "cart": "Panier",
+    "emptyCart": "Aucun produit",
+    "addToCart": "Ajouter",
+    "outOfStock": "Stock epuise",
+    "validateSale": "Valider vente",
+    "history": "Historique des ventes",
+    "success": "Vente validee avec succes",
+    "insufficientStock": "Stock insuffisant pour {{name}}"
+  },
+  "usersPage": {
+    "title": "Gestion des utilisateurs",
+    "added": "Utilisateur ajoute",
+    "updated": "Utilisateur modifie"
+  }
+}

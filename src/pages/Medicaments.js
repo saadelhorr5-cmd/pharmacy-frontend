@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
+import { useTranslation } from "react-i18next";
 
 function Medicaments() {
-
   const [medicaments, setMedicaments] = useState([]);
   const [form, setForm] = useState({
     nom: "",
@@ -10,8 +10,9 @@ function Medicaments() {
     quantite: "",
     date_expiration: ""
   });
-
   const [editId, setEditId] = useState(null);
+  const [search, setSearch] = useState("");
+  const { t } = useTranslation();
 
   const user = JSON.parse(localStorage.getItem("user"));
 
@@ -21,14 +22,14 @@ function Medicaments() {
     }
   });
 
-  const fetchMedicaments = () => {
+  const fetchMedicaments = useCallback(() => {
     axios.get("http://localhost:8000/api/medicaments", getAuthHeaders())
       .then(res => setMedicaments(res.data));
-  };
+  }, []);
 
   useEffect(() => {
     fetchMedicaments();
-  }, []);
+  }, [fetchMedicaments]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -61,141 +62,117 @@ function Medicaments() {
     setEditId(m.id);
   };
 
-  const [search, setSearch] = useState("");
+  if (user?.role !== "admin") return <h2>{t("accessDenied")}</h2>;
 
+  return (
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-6">{t("medicamentsPage.title")}</h1>
 
-  if (user?.role !== "admin") return <h2>Access Denied</h2>;
-  
-
-
-return (
-  <div className="p-6">
-
-    <h1 className="text-2xl font-bold mb-6">💊 Medicaments</h1>
-
-    {/* FORM */}
-    <form
-      onSubmit={handleSubmit}
-      className="bg-white p-6 rounded-2xl shadow mb-6 grid grid-cols-4 gap-4"
-    >
-      <input
-        className="border p-2 rounded"
-        name="nom"
-        placeholder="Nom"
-        value={form.nom}
-        onChange={handleChange}
-      />
-
-      <input
-        className="border p-2 rounded"
-        name="prix"
-        placeholder="Prix"
-        value={form.prix}
-        onChange={handleChange}
-      />
-
-      <input
-        className="border p-2 rounded"
-        name="quantite"
-        placeholder="Quantité"
-        value={form.quantite}
-        onChange={handleChange}
-      />
-
-      <input
-        className="border p-2 rounded"
-        type="date"
-        name="date_expiration"
-        value={form.date_expiration}
-        onChange={handleChange}
-      />
-
-      <button
-        className="col-span-4 !bg-blue-500 text-white py-2 rounded hover:!bg-blue-600 transition"
-        type="submit"
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white p-6 rounded-2xl shadow mb-6 grid grid-cols-4 gap-4"
       >
-        {editId ? "Update" : "Ajouter"}
-      </button>
-    </form>
-
-    {/* TABLE */}
-    <div className="bg-white p-6 rounded-2xl shadow">
-
-      <h3 className="text-lg font-semibold mb-4">Liste des medicaments</h3>
-
-       <input
-            type="text"
-            placeholder="🔍 Rechercher médicament..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full mb-4 p-3 rounded-xl border focus:ring-2 focus:ring-indigo-500 outline-none"
+        <input
+          className="border p-2 rounded"
+          name="nom"
+          placeholder={t("name")}
+          value={form.nom}
+          onChange={handleChange}
         />
 
-      <table className="w-full">
+        <input
+          className="border p-2 rounded"
+          name="prix"
+          placeholder={t("price")}
+          value={form.prix}
+          onChange={handleChange}
+        />
 
-        <thead>
-          <tr className="text-left border-b">
-            <th className="py-2">Nom</th>
-            <th>Prix</th>
-            <th>Stock</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
+        <input
+          className="border p-2 rounded"
+          name="quantite"
+          placeholder={t("medicamentsPage.quantity")}
+          value={form.quantite}
+          onChange={handleChange}
+        />
 
-        <tbody>
-          {medicaments
-              .filter(m =>
-                m.nom.toLowerCase().startsWith(search.toLowerCase())
-              )
-              .map(m => (
-            <tr key={m.id} className="border-b hover:bg-gray-50">
+        <input
+          className="border p-2 rounded"
+          type="date"
+          name="date_expiration"
+          value={form.date_expiration}
+          onChange={handleChange}
+        />
 
-              <td className="py-2">{m.nom}</td>
+        <button
+          className="col-span-4 !bg-blue-500 text-white py-2 rounded hover:!bg-blue-600 transition"
+          type="submit"
+        >
+          {editId ? t("update") : t("add")}
+        </button>
+      </form>
 
-              <td>{m.prix} DH</td>
+      <div className="bg-white p-6 rounded-2xl shadow">
+        <h3 className="text-lg font-semibold mb-4">{t("medicamentsPage.list")}</h3>
 
-              <td>{m.quantite}</td>
+        <input
+          type="text"
+          placeholder={t("medicamentsPage.searchPlaceholder")}
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full mb-4 p-3 rounded-xl border focus:ring-2 focus:ring-indigo-500 outline-none"
+        />
 
-              <td>
-                <span className={`px-2 py-1 rounded text-sm ${
-                  m.quantite < 5
-                    ? "bg-red-100 text-red-600"
-                    : "bg-green-100 text-green-600"
-                }`}>
-                  {m.quantite < 5 ? "Faible" : "OK"}
-                </span>
-              </td>
-
-              <td className="space-x-2">
-
-                <button
-                  onClick={() => editMedicament(m)}
-                  className="bg-yellow-400 px-2 py-1 rounded text-white"
-                >
-                  Edit
-                </button>
-
-                <button
-                  onClick={() => deleteMedicament(m.id)}
-                  className="bg-red-500 px-2 py-1 rounded text-white"
-                >
-                  Delete
-                </button>
-
-              </td>
-
+        <table className="w-full">
+          <thead>
+            <tr className="text-left border-b">
+              <th className="py-2">{t("name")}</th>
+              <th>{t("price")}</th>
+              <th>{t("stock")}</th>
+              <th>{t("status")}</th>
+              <th>{t("actions")}</th>
             </tr>
-          ))}
-        </tbody>
+          </thead>
 
-      </table>
+          <tbody>
+            {medicaments
+              .filter(m => m.nom.toLowerCase().startsWith(search.toLowerCase()))
+              .map(m => (
+                <tr key={m.id} className="border-b hover:bg-gray-50">
+                  <td className="py-2">{m.nom}</td>
+                  <td>{m.prix} DH</td>
+                  <td>{m.quantite}</td>
+                  <td>
+                    <span className={`px-2 py-1 rounded text-sm ${
+                      m.quantite < 5
+                        ? "bg-red-100 text-red-600"
+                        : "bg-green-100 text-green-600"
+                    }`}>
+                      {m.quantite < 5 ? t("low") : t("ok")}
+                    </span>
+                  </td>
+                  <td className="space-x-2">
+                    <button
+                      onClick={() => editMedicament(m)}
+                      className="bg-yellow-400 px-2 py-1 rounded text-white"
+                    >
+                      {t("edit")}
+                    </button>
 
+                    <button
+                      onClick={() => deleteMedicament(m.id)}
+                      className="bg-red-500 px-2 py-1 rounded text-white"
+                    >
+                      {t("delete")}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+          </tbody>
+        </table>
+      </div>
     </div>
-
-  </div>
-);
-
+  );
 }
 
 export default Medicaments;
