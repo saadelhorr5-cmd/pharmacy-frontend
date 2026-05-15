@@ -86,23 +86,42 @@ function Dashboard() {
     return `${year}-${month}-${day}`;
   };
 
-  const getReportFileName = () => {
+  const getReportPeriod = () => {
     if (days === "all") {
-      return "dashboard-report_all-time.pdf";
+      return {
+        fileName: "dashboard-report_all-time.pdf",
+        label: t("dashboardPage.allTime"),
+        startDate: "",
+        endDate: formatDate(new Date())
+      };
     }
 
     const endDate = new Date();
     const startDate = new Date();
     startDate.setDate(endDate.getDate() - Number(days));
+    const formattedStartDate = formatDate(startDate);
+    const formattedEndDate = formatDate(endDate);
 
-    return `dashboard-report_${formatDate(startDate)}_to_${formatDate(endDate)}.pdf`;
+    return {
+      fileName: `dashboard-report_${formattedStartDate}_to_${formattedEndDate}.pdf`,
+      label: `${formattedStartDate} to ${formattedEndDate}`,
+      startDate: formattedStartDate,
+      endDate: formattedEndDate
+    };
   };
 
   const downloadPDF = async () => {
     const token = localStorage.getItem("token");
+    const reportPeriod = getReportPeriod();
+    const params = new URLSearchParams({
+      days: String(days),
+      start_date: reportPeriod.startDate,
+      end_date: reportPeriod.endDate,
+      period_label: reportPeriod.label
+    });
 
     const res = await axios.get(
-      `http://localhost:8000/api/report/pdf?days=${days}`,
+      `http://localhost:8000/api/report/pdf?${params.toString()}`,
       {
         headers: {
           Authorization: `Bearer ${token}`
@@ -114,7 +133,7 @@ function Dashboard() {
     const url = window.URL.createObjectURL(new Blob([res.data]));
     const link = document.createElement("a");
     link.href = url;
-    link.setAttribute("download", getReportFileName());
+    link.setAttribute("download", reportPeriod.fileName);
     document.body.appendChild(link);
     link.click();
     link.remove();
