@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { useTranslation } from "react-i18next";
+import { Check, Minus, Plus, ShoppingCart, Trash2 } from "lucide-react";
 
 function Ventes() {
   const [medicaments, setMedicaments] = useState([]);
@@ -166,7 +167,10 @@ function Ventes() {
         </div>
 
         <div className="bg-white p-6 rounded-2xl shadow">
-          <h2 className="text-lg font-semibold mb-4">{t("salesPage.cart")}</h2>
+          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <ShoppingCart size={20} />
+            {t("salesPage.cart")}
+          </h2>
 
           {cart.length === 0 ? (
             <p className="text-gray-400">{t("salesPage.emptyCart")}</p>
@@ -182,26 +186,29 @@ function Ventes() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => decrease(item.id)}
-                      className="bg-gray-200 px-2 rounded hover:bg-gray-300"
+                      className="bg-gray-200 w-7 h-7 rounded hover:bg-gray-300 flex items-center justify-center"
+                      aria-label="Decrease quantity"
                     >
-                      -
+                      <Minus size={14} />
                     </button>
 
                     <span className="font-semibold w-6 text-center">{item.quantite}</span>
 
                     <button
                       onClick={() => increase(item.id)}
-                      className="bg-gray-200 px-2 rounded hover:bg-gray-300"
+                      className="bg-gray-200 w-7 h-7 rounded hover:bg-gray-300 flex items-center justify-center"
+                      aria-label="Increase quantity"
                     >
-                      +
+                      <Plus size={14} />
                     </button>
                   </div>
 
                   <button
                     onClick={() => removeFromCart(item.id)}
-                    className="text-red-500"
+                    className="text-red-500 hover:text-red-600"
+                    aria-label="Remove from cart"
                   >
-                    X
+                    <Trash2 size={18} />
                   </button>
                 </div>
               ))}
@@ -215,8 +222,9 @@ function Ventes() {
 
             <button
               onClick={validerVente}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold hover:scale-105 transition"
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold hover:scale-105 transition flex items-center justify-center gap-2"
             >
+              <Check size={18} />
               {t("salesPage.validateSale")}
             </button>
           </div>
